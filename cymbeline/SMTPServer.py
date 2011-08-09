@@ -31,45 +31,36 @@ import email.Message
 import SocketServer
 
 from cymbeline.BaseProviders import Pool
-from cymbeline import Server
 
 try:
     
     import cymbeline.SSLSocketServer
-    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler", "BaseSSLHTTPServer"]
+#    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler", "BaseSSLHTTPServer"]
 except:
-    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler"]
-
-
-
-# Default error message
-DEFAULT_ERROR_MESSAGE = """\
-<head>
-<title>Error response</title>
-</head>
-<body>
-<h1>Error response</h1>
-<p>Error code %(code)d.
-<p>Message: %(message)s.
-<p>Error code explanation: %(code)s = %(explain)s.
-</body>
-"""
-
-
-class BaseHTTPServer(Server.BaseTCPServer):
     pass
+#    __all__ = ["BaseSMTPServer", "BaseSMTPRequestHandler"]
+
+
+
+        
 
 
 
 
-class BaseHTTPRequestHandler:
+
+class SMTPRequestHandler(object):
 
     rbufsize = -1
     wbufsize = 0
 
-    def __init__(self, server):
+    def __init__(self, server, GC):
 
         self.server = server
+
+        self.gc = gc
+
+        self.server_name = server.name
+
 
         sys.exc_traceback = None    # Help garbage collection
 
@@ -94,7 +85,7 @@ class BaseHTTPRequestHandler:
     # The server software version.  You may want to override this.
     # The format is multiple whitespace-separated strings,
     # where each string is of the form name[/version].
-    server_version = "BaseHTTP/" + __version__
+    server_version = "BaseSMTP/" + __version__
 
     def parse_request(self):
         """Parse a request (internal).
@@ -347,15 +338,32 @@ class BaseHTTPRequestHandler:
         }
 
 
-try:
-    class BaseSSLHTTPServer(cymbeline.SSLSocketServer.SSLTCPServer, SocketServer.ThreadingMixIn):
 
-        allow_reuse_address = 1    # Seems to make sense in testing environment
 
-        def finish_request(self, request, client_address):
-            """Finish one request by instantiating RequestHandlerClass."""
-            self.RequestHandlerClass(request, client_address, self, self.gc)
+class SMTPServer(Thread):
+    def __init__(self, gc, name, port = 25):
+        Thread.__init__(self, gc, name)
 
-except:
-    pass
+        self._httpd = BaseSMTPServer(gc, name, ('', port), SMTPRequestHandler)
 
+
+        self.gc = gc
+        sys.stdout.write(" '" + name + "' using port " + `port` + " ")
+
+        
+    def run(self):
+        self._httpd.serve_forever()
+
+class SMTP(Provider):
+    def __init__(self, gc, name, port = 25):
+        super(SMTP, self).__init__(gc, name)
+        self.http = SMTPServer(gc, name, port)
+        self.port = port
+
+    def start(self):
+        self.http.start()
+
+    def status(self):
+        return "SMTP Port " + `self.port`
+    
+        

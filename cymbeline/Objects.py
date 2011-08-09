@@ -54,6 +54,9 @@ class LocalGC(object):
         self.local = local
     def __getitem__(self, name):
         return self.getProvider(name)
+    def __getattr__(self, attr):
+        if attr == 'providers':
+            return self.gc.providers
     def registerProvider(self, provider):
         name = provider.getName()
         if name[0] != '/':

@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='cymbeline',
-      version="1.2.0",
+      version="1.2.1",
       description='Embedded application framework',
       author='Yann Ramin',
       author_email='atrus@atrustrivalie.org',
