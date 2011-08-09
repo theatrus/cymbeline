@@ -1,0 +1,24 @@
+Welcome to Cymbeline, the "yet another web framework which 
+			   Python really doesn't need"
+
+Cymbeline was designed not only as a web framework, but rather
+a full environment for embedded systems, complete with 
+commandline console and the whole nine yards.
+
+Cymbeline today is mainly used for IRM 2 and the Shallot media player.
+
+
+Cymbeline is (c) 2004 Yann Ramin
+
+
+There isn't any documentation yet. To see how to use
+Cymbeline, look at IRM 2 or Shallot for examples.
+
+http://www.stackworks.net/shallot
+http://www.stackworks.net/irm2
+
+
+To install: 
+python setup.py install
+
+See cymbeline.py for the bootstrapping script. This may change in future versions
