@@ -8,7 +8,7 @@ commandline console and the whole nine yards.
 Cymbeline today is mainly used for IRM 2 and the Shallot media player.
 
 
-Cymbeline is (c) 2004 Yann Ramin
+Cymbeline is (c) 2005 Yann Ramin
 
 
 There isn't any documentation yet. To see how to use
@@ -21,4 +21,4 @@ http://www.stackworks.net/irm2
 To install: 
 python setup.py install
 
-See cymbeline.py for the bootstrapping script. This may change in future versions
+The bootstrapping script is now called cymbelined.
