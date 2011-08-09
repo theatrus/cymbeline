@@ -150,7 +150,7 @@ class SMTPRequestHandler(Object):
                 
                 if rt == "." or rt == "\x04":
                     self.respond(250, "Ok. Queued as " + digest.hexdigest())
-                    self.message.set_id(digest.hextdigest())
+                    self.message.set_id(digest.hexdigest())
                     
                     self.resp_mode = 'rcptto'
                     return True
@@ -274,31 +274,29 @@ class SMTPRequestHandler(Object):
 
 
 class SMTPServer(Thread,BaseSMTPServer):
-    def __init__(self, name, port = 25, addr = '', request = SMTPRequestHandler):
+    def __init__(self, name, addr = ('', 25), request = SMTPRequestHandler):
         Thread.__init__(self,  name)
-        BaseSMTPServer.__init__(self,  name, (addr, port), request)
+        BaseSMTPServer.__init__(self,  name, addr, request)
 
 
 
 
-        sys.stdout.write(" '" + name + "' using port " + `port` + " ")
-        if addr:
-            sys.stdout.write(" addr " + addr + " ")
+        sys.stdout.write(" '" + name + "' using port " + `addr` + " ")
 
         
     def run(self):
         self.serve_forever()
 
 class SMTP(Provider):
-    def __init__(self, name, port = 25, addr = '', request = SMTPRequestHandler):
+    def __init__(self, name, addr = ('', 25), request = SMTPRequestHandler):
         super(SMTP, self).__init__( name)
-        self.http = SMTPServer(name, port, addr, request)
-        self.port = port
+        self.http = SMTPServer(name, addr, request)
+        self.addr =addr
 
     def start(self):
         self.http.start()
 
     def status(self):
-        return "SMTP Port " + `self.port`
+        return "SMTP Port " + `self.addr`
     
         

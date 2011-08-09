@@ -34,12 +34,12 @@ from cymbeline.Objects import Object
 from cymbeline.BaseProviders import Pool
 from cymbeline.Server.Server import BaseTCPServer
 
-try:
+#try:
     
-    import cymbeline.Server.SSLSocket
-    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler", "BaseSSLHTTPServer"]
-except:
-    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler"]
+#    import cymbeline.Server.SSLSocket
+#    __all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler", "BaseSSLHTTPServer"]
+#except:
+__all__ = ["BaseHTTPServer", "BaseHTTPRequestHandler"]
 
 
 
@@ -55,6 +55,16 @@ DEFAULT_ERROR_MESSAGE = """\
 <p>Error code explanation: %(code)s = %(explain)s.
 </body>
 """
+
+class MimeToolsWrapper(object):
+    def __init__(self, message):
+        self.message = message
+    def __getitem__(self, item):
+        try:
+            return self.message.get(item)
+        except:
+            return None
+        
 
 
 class BaseHTTPServer(BaseTCPServer):
@@ -79,6 +89,7 @@ class BaseHTTPRequestHandler(Object):
         self.connection = self.request
         self.rfile = self.connection.makefile('rb', self.rbufsize)
         self.wfile = self.connection.makefile('wb', self.wbufsize)
+
 
     def finish(self):
         self.wfile.flush()
@@ -120,21 +131,24 @@ class BaseHTTPRequestHandler(Object):
             [command, path, version] = words
             if version[:5] != 'HTTP/':
                 self.send_error(400, "Bad request version (%s)" % `version`)
-                return 0
+                return False
         elif len(words) == 2:
             [command, path] = words
             if command != 'GET':
                 self.send_error(400,
                                 "Bad HTTP/0.9 request type (%s)" % `command`)
-                return 0
+                return False
         else:
             self.send_error(400, "Bad request syntax (%s)" % `requestline`)
-            return 0
+            return False
         self.command, self.path, self.request_version = command, path, version
-        #self.headers = self.MessageClass(self.rfile, 0)
-        parser = email.Parser.Parser()
-        self.headers = parser.parse(self.rfile, 1)
-        return 1
+        self.headers = mimetools.Message(self.rfile, 0)
+        self.headers = MimeToolsWrapper(self.headers)
+        #parser = email.Parser.Parser()
+
+        #self.headers = parser.parse(self.rfile, 1)
+
+        return True
 
     def handle(self):
         """Handle a single HTTP request.
@@ -145,14 +159,21 @@ class BaseHTTPRequestHandler(Object):
 
         """
 
+
         self.raw_requestline = self.rfile.readline()
+
+
+        
         if not self.parse_request(): # An error code has been sent, just exit
             return
         mname = 'do_' + self.command
         if not hasattr(self, mname):
             self.send_error(501, "Unsupported method (%s)" % `self.command`)
+            print "Unsupported action, " + self.command
             return
+
         method = getattr(self, mname)
+
         method()
 
     def send_error(self, code, message=None):

@@ -108,7 +108,7 @@ class License(Provider):
 
         m = md5.new()   # make environment digest
 
-        file = open('CymbelineBootstrap.pyo')
+        file = open('Boostrap.pyo')
         contents = file.readline()
         while contents:
             m.update(contents)
@@ -191,6 +191,7 @@ class Pool(Provider):
             return self._checked_out[id]['object']
 
         self._sem.acquire()
+
         r = self._items.pop()
 
 

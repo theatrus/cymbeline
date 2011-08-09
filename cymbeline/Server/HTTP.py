@@ -281,7 +281,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 self.send_error(500, "File not found while looking for 404")
 
 
-            self.send_error(404, "File not found")
+            self.send_error(404, "File not found" + self.path)
             return
             
         mime = self.determine_mime(self.path)
@@ -329,6 +329,8 @@ class HTTPHandler(BaseHTTPRequestHandler):
             mime = 'image/gif'
         elif re.search('.css', p):
             mime = 'text/css'
+        elif re.search('.xml', p):
+            mime = 'text/xml'
         elif re.search('.txt', p):
             mime = 'text/plain'
         else:
@@ -337,10 +339,13 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 
     def do_HEAD(self):
-        self.send_response(501, 'Not Implemented')
-        self.send_header("Content-Type", "text/html")
 
-        self.wfile.write("I don't like to get HEAD requests...")
+        return self.do_GET()
+#        self.send_response(501, 'Not Implemented')
+ #       self.send_header("Content-Type", "text/html")
+
+#        self.wfile.write("I don't like to get HEAD requests...")
+
     def log_request(self, code='-', size='-'):
         pass
 
@@ -360,16 +365,16 @@ except:
             
 
 class HTTPServer(Thread,BaseHTTPServer):
-    def __init__(self, name, port = 8000, dynapp = False):
+    def __init__(self, name, addr = ('', 8000), dynapp = False):
         Thread.__init__(self, name)
-        BaseHTTPServer.__init__(self, name, ('', port), HTTPHandler)
+        BaseHTTPServer.__init__(self, name, addr, HTTPHandler)
         self.dynapp = dynapp
 
         #self._httpd = BaseHTTPServer(gc, name, ('', port), HTTPHandler)
         #self._httpd.dynapp = dynapp #ugly hack
 
 
-        sys.stdout.write(" '" + name + "' using port " + `port` + " ")
+        sys.stdout.write(" '" + name + "' using port " + `addr` + " ")
 
         
     def run(self):
@@ -411,17 +416,17 @@ class HTTPApplication(Provider):
 
 
 class HTTP(Provider):
-    def __init__(self, name, port = 8000, dynapp = False): #dynapp by name
+    def __init__(self, name, addr = ('', 8000), dynapp = False): #dynapp by name
         super(HTTP, self).__init__( name)
-        self.http = HTTPServer( name, port, dynapp)
+        self.http = HTTPServer( name, addr, dynapp)
 
-        self.port = port
+        self.addr =addr
 
 
     def start(self):
         self.http.start()
 
     def status(self):
-        return "HTTP Port " + `self.port`
+        return "HTTP Port " + `self.addr`
     
         
