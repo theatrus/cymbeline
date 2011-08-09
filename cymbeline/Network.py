@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ import os
 from cymbeline.Objects import Provider,Object,Thread
 
 class IFConfig(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self,  name):
+        Provider.__init__(self,  name)
+
         self.dhclients = {}
         
     def dhclient_kill(self, interface):
@@ -52,8 +52,8 @@ class IFConfig(Provider):
     
 
 class ARP(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
+    def __init__(self,  name):
+        Provider.__init__(self,  name)
 
     def lookup_arp(self, ip):
         # lookup IP address
@@ -82,8 +82,8 @@ class ARP(Provider):
 
 
 class PFConfig(Object):
-    def __init__(self, gc):
-        Object.__init__(self, gc)
+    def __init__(self, ):
+        Object.__init__(self, )
         self.file = []
     def write_config(self, file):
         self.rebuild_config()
@@ -92,9 +92,9 @@ class PFConfig(Object):
 
 
 class PFManager(Provider):
-    def __init__(self, gc, name, pf_config):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self,  name, pf_config):
+        Provider.__init__(self,  name)
+
         self.pf_config = pf_config
     def run_pfctl(self, attrib):
         os.system('pfctl ' + attrib)

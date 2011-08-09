@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -29,11 +29,11 @@ except:
     pass
 
 
-
-from cymbeline.Objects import Object,Provider,GC,LocalGC
+from cymbeline.GC import GC
+from cymbeline.Objects import Object,Provider
 from cymbeline.BaseProviders import Pool,Time,Timer,Log
 from cymbeline.DB import HierDB,MemoryDB
-from cymbeline.HTTPServer import *
+from cymbeline.Server.HTTP import *
 from cymbeline.Network import *
 from cymbeline.IC import CymbelineIC
 
@@ -45,7 +45,7 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
     print "Welcome to the Cymbeline Framework"
     print "-------------------------------------------"
     print "System Release 1.2.4 on Python " + `vmajor` + "." + `vminor` + "." + `vmicro` + vrl + `vserial` +" " + sys.platform
-    print "(c) 2002-2004 Yann Ramin, All Right Reserved."
+    print "(c) 2002-2004-2005 Yann Ramin, All Right Reserved."
     print
     print "Beginning bootstrap..."
 
@@ -62,18 +62,18 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
     sys.stdout.write("--- Creating providers...\n")
 
     sys.stdout.write("Time...     ")
-    gc.registerProvider(Time(gc, '/system/time'))
+    gc.registerProvider(Time('/system/time'))
     print "OK"
 
     sys.stdout.write("Log...      ")
-    log = Log(gc, '/system/log')
+    log = Log('/system/log')
     gc.registerProvider(log)
     log.log('system', 'Logging started')
     print "OK"
 
 
     sys.stdout.write("Timer...    ") # system event timer
-    gc.registerProvider(Timer(gc, '/system/timer'))
+    gc.registerProvider(Timer('/system/timer'))
     print "OK"
 
     sys.stdout.write("Settings DB... ")
@@ -83,7 +83,7 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
 
     try:
         filein = settings_db
-        gc.registerProvider(MemoryDB(gc, '/system/settings', filein, autoload = 1, dumpinterval = 100))
+        gc.registerProvider(MemoryDB( '/system/settings', filein, autoload = 1, dumpinterval = 100))
         sys.stdout.write("(init from " + filein + ") ")
         
        # gc.getProvider('db_settings').loadFromFile()
@@ -93,12 +93,12 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
         print
         print "No settings database specified, or unable to load."
         print
-        return
+        raise
 
     print "OK"
 
     sys.stdout.write("Interactive console...")
-    ic = CymbelineIC(gc, "/system/ic")
+    ic = CymbelineIC( "/system/ic")
 
     gc.registerProvider(ic)
     print "OK"

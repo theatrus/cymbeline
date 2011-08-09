@@ -5,8 +5,8 @@ import os
 import optparse
 import signal
 
-from xml.dom import minidom
 
-import cymbeline.Launch.launch
 
-cymbeline.Launch.launch()
+from cymbeline.Launch import launch
+
+launch()

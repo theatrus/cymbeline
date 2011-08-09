@@ -1,0 +1,8 @@
+
+Major changes:
+
+1.3.0
+===========
+
+- Moved all servers to the cymbeline.Server.* package.
+

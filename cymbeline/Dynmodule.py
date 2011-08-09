@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@ class Dynmodule(Object):
 
     __restricted_func__ = ['awake', '__init__', 'serve_from_file']
 
-    def __init__(self,gc):
-        Object.__init__(self,gc)
+    def __init__(self):
+        Object.__init__(self)
 
-        self.gc = gc
+
 
     def _awake(self, http):
         self.http = http

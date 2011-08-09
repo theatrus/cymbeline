@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ from threading import *
 
 
 class MemoryDB(Provider):
-    def __init__(self, gc, name, db = '', **flags):
-        Provider.__init__(self, gc, name)
+    def __init__(self, name, db = '', **flags):
+        Provider.__init__(self, name)
 
         if 'dumpinterval' not in flags:
             flags['dumpinterval'] = -1
@@ -35,7 +35,7 @@ class MemoryDB(Provider):
             flags['autoload'] = 1
 
 
-        self.gc = gc
+
         self.name = name
         self._wc = 0
         self._rc = 0
@@ -93,7 +93,7 @@ class MemoryDB(Provider):
         file.close()
         self._stale = 0
         self._staletime = int(time.time())
-        self.gc['log'].log(self.name, 'database dumped to file')
+        self.GC['log'].log(self.name, 'database dumped to file')
         self.unlock()
     def read(self, key):
         self._rc = self._rc + 1
@@ -117,7 +117,7 @@ class MemoryDB(Provider):
             stalemsg = "STALE"
         else:
             stalemsg = ""
-        return "Reads: " + `self._rc` + " Writes: " + `self._wc` + " Last commit: " + `int(time.time()) - self._staletime` + " seconds ago " + stalemsg
+        return "R: " + `self._rc` + " W: " + `self._wc` + " Last commit: " + `int(time.time()) - self._staletime` + " s " + stalemsg
     def Timer(self, options=''):
         if self.checkStale:
             self.dumpToFile()
@@ -125,8 +125,8 @@ class MemoryDB(Provider):
 
 
 class HierDB(Provider):
-    def __init__(self, gc, name, **flags):
-        Provider.__init__(self, gc, name)
+    def __init__(self, name, **flags):
+        Provider.__init__(self, name)
         self.name = name
 
         if 'mode' not in flags:
@@ -142,7 +142,12 @@ class HierDB(Provider):
         self.flags = flags
         
         r = re.compile('/')
-        self.file_name = r.sub('_', name)
+
+        try:
+            self.file_name = self.flags["filename"]
+        except:
+            self.file_name = r.sub('_', name)
+        
         self._root = {}
         self._reads = 0
         self._writes = 0
@@ -199,7 +204,7 @@ class HierDB(Provider):
             stalemsg = "STALE"
         else:
             stalemsg = ""
-        return "HierDB 0.2: Reads: " + `self._reads` + " Writes: " + `self._writes` + " Last commit: " + `int(time.time()) - self._staletime` + " seconds ago " + stalemsg
+        return "HierDB 0.2: R: " + `self._reads` + " W: " + `self._writes` + " Last commit: " + `int(time.time()) - self._staletime` + " seconds ago " + stalemsg
 
 
     def read(self, path):
@@ -263,14 +268,14 @@ class HierDB(Provider):
 
 class AttributeDB(Provider):
     """ Depreceated - Use Hier """
-    def __init__(self, gc, name):
+    def __init__(self, name):
         
-        Provider.__init__(self, gc, name)
+        Provider.__init__(self, name)
         self._name = name
         r = re.compile('/')
         fname = r.sub('_', name) # replace / with _ for file names of database
-        self._dbroot = CymMemoryDB(gc, name + '/root', fname + '_root')
-        self._dbattr = CymMemoryDB(gc, name + '/attr', fname + '_attr')
+        self._dbroot = CymMemoryDB(name + '/root', fname + '_root')
+        self._dbattr = CymMemoryDB(name + '/attr', fname + '_attr')
     def loadFromFile(self):
         self._dbroot.loadFromFile()
         self._dbattr.loadFromFile()

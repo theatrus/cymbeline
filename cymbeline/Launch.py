@@ -50,7 +50,7 @@ def createDaemon():
       if (pid == 0):      # The second child.
          # Ensure that the daemon doesn't keep any directory in use.  Failure
          # to do this could make a filesystem unmountable.
-         os.chdir("/")
+         #os.chdir("/")
          # Give the child complete control over permissions.
          os.umask(0)
       else:
@@ -66,11 +66,11 @@ def createDaemon():
    #except (AttributeError, ValueError):
    #   maxfd = 256       # default maximum
 
-   #for fd in range(0, maxfd):
-   #   try:
-   #      os.close(fd)
-   #   except OSError:   # ERROR (ignore)
-   #      pass
+   for fd in range(0, 2):
+      try:
+         os.close(fd)
+      except OSError:   # ERROR (ignore)
+         pass
 
    # Redirect the standard file descriptors to /dev/null.
    os.open("/dev/null", os.O_RDONLY)    # standard input (0)

@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,62 +21,9 @@ import sys
 import os
 import __builtin__
 
-class GC(object):
-    """ The Cymbeline Global Context class, registers all other threads and provides objects to call """
-    def __getitem__(self, name): # shortcut for getProvider
-        return self.getProvider(name)
-    def __init__(self):
-        self.providers = {} # providers of services, eg, database
-        self.threads = {} # threads, by name
-    def registerThread(self, name, thread):
-        self.threads[name] = thread
-    def registerProvider(self, provider):
-        name = provider.getName()
-        if name[0] != '/':
-            name = '/' + name
-        self.providers[name] = provider
-    def getProvider(self, name):
-        try:
-            if name[0] != '/':
-                name = '/' + name
-            return self.providers[name]
-        except:
-            print
-            print "Provider by name: '" + name + "' not found"
-            print
-            raise
+from cymbeline.GC import GC
 
-
-class LocalGC(object):
-    """ A version of the global context which can be intialized and provide local paths """
-    def __init__(self, gc, local = '/'):
-        self.gc = gc
-        self.local = local
-    def __getitem__(self, name):
-        return self.getProvider(name)
-    def __getattr__(self, attr):
-        if attr == 'providers':
-            return self.gc.providers
-    def registerProvider(self, provider):
-        name = provider.getName()
-        if name[0] != '/':
-            name = self.local + name
-        provider.setName(name)
-        self.gc.registerProvider(provider)
-    def registerThread(self, name, thread):
-        self.gc.registerThread(name, thread)
-    def getProvider(self, name):
-        try:
-            if name[0] != '/':
-                name = self.local + name
-            return self.gc.getProvider(name)
-        except:
-            print
-            print "Provider by name: '" + name + "' not found in global or local context"
-            print
-            raise
-
-class RollbackImporter:
+class RollbackImporter(object):
     def __init__(self):
         self.previousModules = sys.modules.copy()
         self.realImport = __builtin__.__import__
@@ -102,12 +49,13 @@ class RollbackImporter:
         
 
 class Object(object):
+    """ Note that this class still supports getting passed a GC """
     def __init__(self, gc = None):
         self.Lock = threading.RLock()
         if gc is not None:
             self.GC = gc
         else:
-            self.gc = GC # use the global
+            self.GC = GC() # use the global
             
         
     def lock(self):
@@ -117,8 +65,8 @@ class Object(object):
         
 
 class Provider(Object):
-    def __init__(self, gc = None, name = None):
-        Object.__init__(self, gc)
+    def __init__(self, name = None):
+        Object.__init__(self)
         if name is None:
             raise ValueError
         
@@ -137,15 +85,15 @@ class Thread(threading.Thread, Object):
     It provides registration in the Cymbeline global context, and makes the threads daemon
     by default. """
     
-    def __init__(self, gc = None, name = None, daemon = True):
+    def __init__(self, name = None, daemon = True):
         threading.Thread.__init__(self)
-        Object.__init__(self, gc)
+        Object.__init__(self)
         self.Name = name
         self.setDaemon(daemon)
-        gc.registerThread(name, self) # register thread with global context
+        self.GC.registerThread(name, self) # register thread with global context
     def run(self):
         print "Thread not implemented. Thread: " + self.Name + ". Please fix."
-
+        raise
         
 
 

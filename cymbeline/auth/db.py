@@ -24,11 +24,11 @@ __doc__ = """ Internal Cymbeline user database lookup module. """
 __flags_descr__ = [ 'Cymbeline CymMemoryDB to use' ]
 
 class db(CymObject):
-    def __init__(self, gc, name, config = []):
-        CymObject.__init__(self, gc)
+    def __init__(self, name, config = []):
+        CymObject.__init__(self)
         self.config = config
         self.name = name
-        self.db = gc[config[0]]
+        self.db = self.GC[config[0]]
 
 
     def authenticate(self, fields):

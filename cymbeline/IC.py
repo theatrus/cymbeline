@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,10 +28,19 @@ from cymbeline.DB import HierDB
 
 __version__ = "0.1.2"
 
+class IC_Command(Object):
+    
+    def __init__(self):
+        Object.__init__(self)
+        self.commands = {'': self.null }
+    def null(self, *other):
+        pass
 
-class IC_Builtins(Object):
-    def __init__(self, gc):
-        Object.__init__(self, gc)
+    
+
+class IC_Builtins(IC_Command):
+    def __init__(self):
+        IC_Command.__init__(self)
         self.commands = {'version' : self.version,
                          'providers' : self.providers,
                          'threads' : self.threads,
@@ -39,12 +48,9 @@ class IC_Builtins(Object):
                          'quit' : self.quit,
                          '': self.null }
 
-    def null(self, *other):
-        pass
-
     def version(self, *other):
         print "Cymbeline Interactive Console Version " + __version__
-        print "(c) 2002-2004 Yann Ramin"
+        print "(c) 2002-2004-2005 Yann Ramin"
         print "All rights reserved."
 
     def providers(self, *other):
@@ -83,33 +89,55 @@ class IC_Builtins(Object):
             
                     
 
-class CymbelineIC(Provider): # this is a provider
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-
-        self.commands = {}
-        builtin = IC_Builtins(gc)
-        self.commands.update(builtin.commands)
+class IC_Console(Object):
+    def __init__(self, 
+                 o = sys.stdout, i = sys.stdin):
         
+        Object.__init__(self)
+        self.outf = o
+        self.inf = i
+
         
-
-
-    def ic_console(self, outh = sys.stdout, inh = sys.stdin): # need support for in/out
+    def ic_console(self): 
 
         print "Cymbeline Interactive Console Version " + __version__
         gc = self.GC
+
+        ic = gc['/system/ic']
+        
         while 1:
 
             line = raw_input(">")
             linespl = line.split(' ')
 
             try:
-                result = self.commands[linespl[0]](linespl[1:])
+                result = ic.commands[linespl[0]](linespl[1:])
                 if result == -100:
                     return # quit :)
             except KeyError:
                 print 'Command not found'
 
-            
+
+class CymbelineIC(Provider): # this is a provider
+    def __init__(self, name):
+        Provider.__init__(self, name)
+
+        self.commands = {}
+        self.command_obj = {'builtin' : IC_Builtins()}
+        self.commands.update(self.command_obj['builtin'].commands)
+        
+
+    def status(self):
+        return `len(self.commands)` + " commands loaded"
+    def add_commands(self, cclass, com):
+
+        self.commands.update(com.commands)
+        self.command_obj[cclass] = com
+
+
+    def ic_console(self, outh = sys.stdout, inh = sys.stdin):
+        i = IC_Console( outh, inh)
+        i.ic_console()
+
 
 

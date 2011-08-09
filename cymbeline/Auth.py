@@ -1,6 +1,6 @@
 
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ class AuthStatus(object):
     user = ""
 
 class Auth(Provider):
-    def __init__(self, gc, name, modules = None, module_root = 'cymbeline.auth'):
-        Provider.__init__(self, gc, name)
+    def __init__(self, name, modules = None, module_root = 'cymbeline.auth'):
+        Provider.__init__(self, name)
         self.modules = {}
         self.active_modules = []
         self._module_root = module_root
@@ -65,7 +65,7 @@ class Auth(Provider):
         for ml in _modules:
             m = ml[1] # 2nd value for class
             exec("import " + self._module_root + "." + m + "")
-            exec("mod = " + self._module_root + "." + m + "." + m + "(self.GC, ml[0] ,ml[2])")
+            exec("mod = " + self._module_root + "." + m + "." + m + "( ml[0] ,ml[2])")
 
             #mod = m(self.GC, ml[0], ml[2]) # Expierimental
             self.modules[ml[0]] = mod # first value for name

@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ import thread
 import string
 
 class Log(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self, name):
+        Provider.__init__(self, name)
+
         self.logs = {}
         self.logs['system'] = []
         self._length = 100 # max number of entries
@@ -54,9 +54,9 @@ class Log(Provider):
 
 
 class FilesysManager(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self, name):
+        Provider.__init__(self, name)
+
         self.fs = {}
     def add_fs(self, name, device):
         self.fs[name] = device;
@@ -66,9 +66,9 @@ class FilesysManager(Provider):
         os.system("mount -o noatime -ru " + filesys)
 
 class TimerThread(Thread):
-    def __init__(self, gc, name):
-        Thread.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self, name):
+        Thread.__init__(self, name)
+
         self.classes = {}
         self.count_down = {}
         self.options = {}
@@ -90,19 +90,19 @@ class TimerThread(Thread):
         self.options[c] = options
 
 class Timer(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
-        self.thread = TimerThread(gc, name + "_thread")
+    def __init__(self,  name):
+        Provider.__init__(self,  name)
+
+        self.thread = TimerThread(name + "_thread")
         self.thread.start()
     def addFunction(self, c, interval, options=''):
         self.thread.addFunction(c, interval, options)
 
 
 class License(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self, gc, name)
-        self.gc = gc
+    def __init__(self, name):
+        Provider.__init__(self, name)
+
         
         license = ""
 
@@ -124,8 +124,8 @@ class License(Provider):
         print "Environment Digest: ", m.hexdigest()
         
         try:
-            license = gc.getProvider('db_settings').read('_license')
-            confirm = gc.getProvider('db_settings').read('_license_confirm')
+            license = self.GC.getProvider('db_settings').read('_license')
+            confirm = self.GC.getProvider('db_settings').read('_license_confirm')
         except:
             print
             print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -138,14 +138,14 @@ class License(Provider):
 
 
             print "Validating..."
-            gc['db_settings'].write('_license', license) #0BAB-12A-87C-76D
-            gc['db_settings'].write('_license_confirm', confirm)
+            self.GC['db_settings'].write('_license', license) #0BAB-12A-87C-76D
+            self.GC['db_settings'].write('_license_confirm', confirm)
             
         print "License key: ",license
 
 class Pool(Provider):
-    def __init__(self, gc, name, pool = 10, factory = None, factory_param = [] , factory_param_map = {}, one_per_thread = True, more_stats = False):
-        self.gc = gc
+    def __init__(self, name, pool = 10, factory = None, factory_param = [] , factory_param_map = {}, one_per_thread = True, more_stats = False):
+
         self.name = name
         self._items = []
 
@@ -166,11 +166,10 @@ class Pool(Provider):
         self._factory = factory
         self._factory_param = factory_param
         self._factory_param_map = factory_param_map
-        self.manage_pool()
-
-
         
-        Provider.__init__(self, gc, name)
+        Provider.__init__(self, name)
+
+        self.manage_pool()
 
     def manage_pool(self):
         #self.lock()
@@ -239,9 +238,9 @@ class Pool(Provider):
 
 
 class Time(Provider):
-    def __init__(self, gc, name):
-        Provider.__init__(self,gc,name)
-        self.gc=gc
+    def __init__(self,  name):
+        Provider.__init__(self,name)
+
         self._time = time.time()
     def getUptime(self):
         return time.time() - self._time

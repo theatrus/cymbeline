@@ -1,5 +1,5 @@
 #    Cymbeline - a python embedded framework
-#    Copyright (C) 2004 Yann Ramin
+#    Copyright (C) 2004-2005 Yann Ramin
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@ class RemoteNameServer(Thread):
         Pyro.naming.NameServerStarter()
 
 class RemoteServer(Thread):
-    def __init__(self, gc, name):
-        Thread.__init__(self, gc, name)
+    def __init__(self,  name):
+        Thread.__init__(self, name)
         Pyro.core.initServer(banner=0)
         self.daemon = Pyro.core.Daemon()
         
@@ -47,15 +47,15 @@ class RemoteServer(Thread):
 
 
 class Remote(Provider):
-    def __init__(self, gc, name, instance = 'cymbeline'):
-        Provider.__init__(self,gc,name)
+    def __init__(self,  name, instance = 'cymbeline'):
+        Provider.__init__(self,name)
 
         self.remotes = {}
         self.published = {}
         self.instance = instance
         
         
-        self.nameserver = RemoteServer(gc, name+"_ns_thread")
+        self.nameserver = RemoteServer( name+"_ns_thread")
         self.nameserver.start()
 
         time.sleep(0.5)
@@ -64,7 +64,7 @@ class Remote(Provider):
         locator = Pyro.naming.NameServerLocator()
         self.ns = locator.getNS()
         
-        self.server = RemoteServer(gc, name + "_srv_thread")
+        self.server = RemoteServer( name + "_srv_thread")
 
         self.server.start()
         Pyro.core.initClient()

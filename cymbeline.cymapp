@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<cymapp>
+ <title>Cymbeline Empty Framework</title>
+ <module>cymbeline</module>
+ <author>Yann Ramin</author>
+</cymapp>
