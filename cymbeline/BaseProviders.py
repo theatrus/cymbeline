@@ -48,7 +48,7 @@ class Log(Provider):
         if len(self.logs[log]) > self._length:
             self.logs[log].pop()
         if self._console: # see if we should print to console
-            sys.stdout.write(time.ctime(time.time()) + " "+ log+":" +service+": "+ message+"\n")
+            sys.stdout.write(time.ctime(time.time()) + " "+ log+"-" +service+": "+ message+"\n")
         self.unlock()
         
 

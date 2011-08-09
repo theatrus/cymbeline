@@ -44,7 +44,7 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
     print
     print "Welcome to the Cymbeline Framework"
     print "-------------------------------------------"
-    print "System Release 1.2.0 on Python " + `vmajor` + "." + `vminor` + "." + `vmicro` + vrl + `vserial` +" " + sys.platform
+    print "System Release 1.2.4 on Python " + `vmajor` + "." + `vminor` + "." + `vmicro` + vrl + `vserial` +" " + sys.platform
     print "(c) 2002-2004 Yann Ramin, All Right Reserved."
     print
     print "Beginning bootstrap..."
@@ -117,7 +117,7 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
 
         ic.ic_console()
         print "Exiting the main console - So long, and thanks for all the fish"
-	return        
+        return
     else:
         while 1:
             time.sleep(100)

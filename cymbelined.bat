@@ -1,0 +1,1 @@
+python -O -tt -c "from cymbeline.Launch import launch; launch()" %1 %2 %3 %4 %5

@@ -115,7 +115,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.re_getarg = re.compile('[&]')
         self.re_getval = re.compile('(?P<key>.*)=(?P<val>.*)')
         
-        self.re_dynsplit = re.compile('/dynamic/(?P<module>.*)/(?P<command>.*)')
+        self.re_dynsplit = re.compile('/(?P<app>.*)/(?P<module>.*)/(?P<command>.*)')
 
 
         # Pass None for both Request and Client_address, since these are now handled by awake
@@ -150,13 +150,33 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 
     def serve(self):
-        if re.match('/dynamic/', self.path):
-            dynrequest = self.re_dynsplit.search(self.path)
-            module = dynrequest.group('module')
-            command = dynrequest.group('command')
-            self.serve_dynamic(module, command)
-        else:
+        dyn = self.gc[self.server.dynapp].apps
+
+        if not dyn:
             self.serve_static()
+            return
+        for app in dyn:
+
+            dynrequest = self.re_dynsplit.search(self.path)
+            try:
+                if dynrequest:
+                    _app = dynrequest.group('app') # figure out our app
+                else:
+                    self.serve_static()
+                    return # stop
+                
+                if _app == app[0]:
+                
+
+                    application = app[1]
+                    module = dynrequest.group('module')
+                    command = dynrequest.group('command')
+                    self.serve_dynamic(application, module, command)
+                    return
+            
+                self.serve_static()
+            except:
+                self.send_error(500)
         
 
     def do_GET(self):
@@ -182,9 +202,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         self.serve()
 
-    def serve_dynamic(self, module, command = 'default'):
-        #self.wfile.write("200 HTTP/1.0 OK\n\n")
-        #dynwebroot = self.gc.getProvider('db_settings').read('http-' + self.server_name + '-dynwebroot')
+    def serve_dynamic(self, application, module, command = 'default'):
 
         rollback = RollbackImporter() # install rollback handler
         
@@ -194,10 +212,12 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             #__builtin__.__import__("dynwebroot." + module, globals(), None, [])
 
-            exec("import dynwebroot."+ module + "")
+            exec("import "+application+"."+ module + "")
 
 
-            mmodule = getattr(dynwebroot, module)
+            exec("mmodule = getattr("+
+                 application+
+                 ", module)")
             mclass = getattr(mmodule, module)
 
             mod = mclass(self.gc)
@@ -218,13 +238,17 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 
         except:
-            print "Error occured in executing dynamic module " + module
+            print "Error occured in executing dynamic module " + module + " app " + application
             print '-'*60
             traceback.print_exc()
             print '-'*60
             print "Cleaning up dynamic space."
-            self.send_error(500)
+            self.send_error(500, 'Uncaught exception')
             
+
+            self.wfile.write("<pre>")
+            traceback.print_exc(file=self.wfile)
+            self.wfile.write("</pre>")
 
         mod = ''
         del mod
@@ -255,14 +279,20 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             except:
                 self.send_error(500, "File not found while looking for 404")
+
+
             self.send_error(404, "File not found")
             return
             
         mime = self.determine_mime(self.path)
 
-        self.send_response(200, 'OK')
-        self.send_header("Content-Type", mime)
-        self.send_queued_headers()
+        try:
+            self.send_response(200, 'OK')
+            self.send_header("Content-Type", mime)
+            self.send_queued_headers()
+        except:
+            print " - Connection closed prematurely"
+            return
 
         
 
@@ -270,7 +300,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         # I'm not very happy with this, but whatever
         
-
+        
         contents = file.readline()
         while contents:
             try:
@@ -329,19 +359,22 @@ except:
     pass
             
 
-class HTTPServer(Thread):
-    def __init__(self, gc, name, port = 8000):
+class HTTPServer(Thread,BaseHTTPServer):
+    def __init__(self, gc, name, port = 8000, dynapp = False):
         Thread.__init__(self, gc, name)
+        BaseHTTPServer.__init__(self, gc, name, ('', port), HTTPHandler)
+        self.dynapp = dynapp
 
-        self._httpd = BaseHTTPServer(gc, name, ('', port), HTTPHandler)
-
+        #self._httpd = BaseHTTPServer(gc, name, ('', port), HTTPHandler)
+        #self._httpd.dynapp = dynapp #ugly hack
 
         self.gc = gc
         sys.stdout.write(" '" + name + "' using port " + `port` + " ")
 
         
     def run(self):
-        self._httpd.serve_forever()
+        #self._httpd.serve_forever()
+        self.serve_forever()
 
 try:
     class SSLHTTPServer(Thread):
@@ -363,13 +396,27 @@ except:
     pass
 
 
+class HTTPApplication(Provider):
+    def __init__(self, gc, name):
+        super(HTTPApplication, self).__init__(gc, name)
+
+        self.apps = [['dynamic', 'dynwebroot']]
+    def add_app(root, code):
+        if [root,code] in self.apps:
+            raise "Already registered"
+        
+        self.apps.append([root, code])
+    def status(self):
+        return `self.apps`
 
 
 class HTTP(Provider):
-    def __init__(self, gc, name, port = 8000):
+    def __init__(self, gc, name, port = 8000, dynapp = False): #dynapp by name
         super(HTTP, self).__init__(gc, name)
-        self.http = HTTPServer(gc, name, port)
+        self.http = HTTPServer(gc, name, port, dynapp)
+
         self.port = port
+
 
     def start(self):
         self.http.start()
