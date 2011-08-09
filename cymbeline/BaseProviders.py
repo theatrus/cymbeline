@@ -34,8 +34,10 @@ class Log(Provider):
         self.logs['system'] = []
         self._length = 100 # max number of entries
         self._console = True
-    def log(self, service, message, log = 'system'):
+    def log(self, service, message, log = 'system', commit = True):
         self.lock()
+        if commit is False:
+            pass # do something witty
         if log not in self.logs:
             self.logs[log] = []
         m = {}

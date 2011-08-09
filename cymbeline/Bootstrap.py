@@ -66,7 +66,9 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
     print "OK"
 
     sys.stdout.write("Log...      ")
-    gc.registerProvider(Log(gc, '/system/log'))
+    log = Log(gc, '/system/log')
+    gc.registerProvider(log)
+    log.log('system', 'Logging started')
     print "OK"
 
 
@@ -81,7 +83,7 @@ def bootstrap(user_boot, ic_console = True, settings_db = None):
 
     try:
         filein = settings_db
-        gc.registerProvider(MemoryDB(gc, '/system/settings', filein, autload = 1, dumpinterval = 100))
+        gc.registerProvider(MemoryDB(gc, '/system/settings', filein, autoload = 1, dumpinterval = 100))
         sys.stdout.write("(init from " + filein + ") ")
         
        # gc.getProvider('db_settings').loadFromFile()
